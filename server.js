@@ -21,13 +21,6 @@ var oauth = new Oauth.OAuth(
 	'HMAC-SHA1'
 );
 
-var server = app.listen(5000,function(){
-	var host = server.address().address;
-	var port = server.address().port;
-	console.log('Example app listening at http://%s:%s', host, port)
-});
-
-
 function doSearch(params){
 	var request = new Promise(
 		function (resolve,reject){
@@ -101,29 +94,6 @@ function resolveTweets(response){
 	return getDataSet(response.params);
 }
 
-function init(){
-	var params = {
-		'count' : 100
-	}
-	getDataSet(params)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(resolveTweets)
-	.then(function(){
-		console.log("Data set ready");
-		return;
-	},
-	function(error){
-		console.log(error);
-	});
-}
 
 function compareStrings(tweetA,tweetB){
 	var a = tweetA.id;
@@ -141,17 +111,58 @@ function processData(data){
 	var tweets = new Array();
 	for(var i in array){
 		var tweet = {};
-		tweet.id = array[i].id_str;
-		tweet.date = array[i].created_at;
-		tweet.text = array[i].text;
 		var geoData = array[i].geo;
 		if(geoData && geoData.coordinates){
-			tweet.lat = geoData.coordinates[1];
+
 			tweet.lng = geoData.coordinates[0];
+			tweet.lat = geoData.coordinates[1];
+			tweet.id = array[i].id_str;
+			tweet.date = array[i].created_at;
+			tweet.text = array[i].text;
+
+			var user = {};
+			user.id = array[i].user.id_str;
+			user.followers_count = array[i].user.followers_count;
+			user.friends_count = array[i].user.friends_count
+			tweet.user = user;
+
+			if(array[i].retweet_count){
+				tweet.retweet_count = array[i].retweet_count;	
+			}else{
+				tweet.retweet_count = 0;
+			}
+			
+			if(array[i].favorite_count){
+				tweet.favorite_count = array[i].favorite_count;
+			}else{
+				tweet.favorite_count = 0;
+			}
+
+			if(array[i].entities.hashtags){
+				tweet.tags = array[i].entities.hashtags.text;
+			}else{
+				tweet.tags = ""
+			}
+
 			tweets.push(tweet);
 		}
 	}
 	return tweets;
 }
 
-init();
+function downloadData(){
+	var params = {
+		'count' : 100
+	}// parameters to url
+	getDataSet(params)
+	.then(resolveTweets)
+	.then(function(){
+		console.log("Data set ready");
+		return;
+	},
+	function(error){
+		console.log(error);
+	});
+}
+
+	downloadData()
