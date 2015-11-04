@@ -54,44 +54,29 @@ function getTweets(params){
 	return new Promise(function(resolve,reject){
 		doSearch(params).then(function(data,res){
 			var tweets = processData(data);
-			resolve(tweets);
+			var sortedTweets = tweets.sort(compareStrings);
+			var max_id = sortedTweets[sortedTweets.length-1].id;//the lowest ID received.
+			var since_id = sortedTweets[0].id;// greatest ID of all the Tweets your application has already processed
+			var params = {
+				'max_id': max_id,
+				'count': 100
+			};
+			var response = {};
+			response.tweets = sortedTweets;
+			response.params = params;
+			resolve(response);
 		},function(error){
 			reject(error);
 		});
 	});
 }
 
-
-function getDataSet(par){
-	var request = new Promise(
-		function(resolve,reject){
-			getTweets(par).then(function(tweets){
-				var sortedTweets = tweets.sort(compareStrings);
-				var max_id = sortedTweets[sortedTweets.length-1].id;//the lowest ID received.
-				var since_id = sortedTweets[0].id;// greatest ID of all the Tweets your application has already processed
-				var params = {
-					'max_id': max_id,
-					'count': 100
-				};
-				var response = {};
-				response.tweets = sortedTweets;
-				response.params = params;
-				resolve(response);
-			},function(error){
-				console.log(error);
-				reject(error);
-			})
-		}
-	);
-	return request;
-}
-
-function resolveTweets(response){
+function writeTweets(response){
 	console.log(response.tweets.length);
 	var file = './dataset/data'+ index +'.json';
 	index = index + 1;
 	jsonfile.writeFileSync(file,response.tweets);
-	return getDataSet(response.params);
+	return getTweets(response.params);//get more tweets
 }
 
 
@@ -154,8 +139,8 @@ function downloadData(){
 	var params = {
 		'count' : 100
 	}// parameters to url
-	getDataSet(params)
-	.then(resolveTweets)
+	getTweets(params)
+	.then(writeTweets)
 	.then(function(){
 		console.log("Data set ready");
 		return;
@@ -165,4 +150,4 @@ function downloadData(){
 	});
 }
 
-	downloadData()
+	downloadData();
