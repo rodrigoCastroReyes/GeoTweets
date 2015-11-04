@@ -2,6 +2,7 @@ var express = require('express');
 var Oauth = require('oauth');
 var Promise = require('promise');
 var jsonfile = require('jsonfile');
+jsonfile.spaces = 4;
 var fs = require('fs');
 var app = express();
 
@@ -149,6 +150,16 @@ function downloadData(){
 		'count' : 100
 	}// parameters to url
 	getTweets(params)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
 	.then(writeTweets)
 	.then(writeTweets)
 	.then(writeTweets)
