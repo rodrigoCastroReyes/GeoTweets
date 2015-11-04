@@ -2,6 +2,7 @@ var express = require('express');
 var Oauth = require('oauth');
 var Promise = require('promise');
 var jsonfile = require('jsonfile');
+var fs = require('fs');
 var app = express();
 
 var consumer_key = 'MtHsM6e0jpbeRNTNOwKOjcBUF';
@@ -24,7 +25,6 @@ var oauth = new Oauth.OAuth(
 function doSearch(params){
 	var request = new Promise(
 		function (resolve,reject){
-			console.log("do search");
 			var url = formUrl(params);	
 			console.log(url);
 			oauth.get(url,
@@ -72,10 +72,19 @@ function getTweets(params){
 }
 
 function writeTweets(response){
-	console.log(response.tweets.length);
-	var file = './dataset/data'+ index +'.json';
-	index = index + 1;
-	jsonfile.writeFileSync(file,response.tweets);
+	//console.log(response.tweets.length); //number of new tweets
+	var file = './dataset/data.json';
+	try{
+		var content = jsonfile.readFileSync(file);//old tweets in data.json
+		var newTweets = [];
+		newTweets = newTweets.concat(content.tweets).concat(response.tweets);	
+		jsonfile.writeFileSync(file,{ tweets : newTweets });
+		console.log("nuevo tamaño");
+		console.log(newTweets.length);
+	}catch(error){
+		jsonfile.writeFileSync(file,{ tweets : response.tweets });
+	}
+	
 	return getTweets(response.params);//get more tweets
 }
 
@@ -111,13 +120,13 @@ function processData(data){
 			user.friends_count = array[i].user.friends_count
 			tweet.user = user;
 
-			if(array[i].retweet_count){
+			if(array[i].retweet_count>0){
 				tweet.retweet_count = array[i].retweet_count;	
 			}else{
 				tweet.retweet_count = 0;
 			}
 			
-			if(array[i].favorite_count){
+			if(array[i].favorite_count>0){
 				tweet.favorite_count = array[i].favorite_count;
 			}else{
 				tweet.favorite_count = 0;
@@ -141,7 +150,26 @@ function downloadData(){
 	}// parameters to url
 	getTweets(params)
 	.then(writeTweets)
-	.then(function(){
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(writeTweets)
+	.then(function(response){
+		writeTweets(response);
 		console.log("Data set ready");
 		return;
 	},

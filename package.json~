@@ -1,8 +1,9 @@
-{ 
-	"name":"twitter example",
-	"version" : "1.0.0",
-	"dependencies": {
-    		"express": "^4.13.3",
-    		"oauth" : "0.9.12"
-  	}
+{
+  "name": "twitter",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.13.3",
+    "oauth": "0.9.12",
+    "jsonfile": "~2.2.3"
+  }
 }
