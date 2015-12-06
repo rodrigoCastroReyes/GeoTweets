@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Pool Espol</title>
+		<meta charset="UTF-8">
+		<script type="text/javascript" src="lib/jquery-1.11.3.min.js" ></script>
+		<script type="text/javascript">
+			var params = {'count' : 100 }
+			var request = 180;
+		 	function init(){
+		 		$.ajax({
+                	               data:  params,
+                	               url:   '/getTweets',
+                        	       type:  'get',
+                	               success: delay
+        		      });
+		 	}
+
+		 	function delay(response){
+                                setTimeout(function(){
+                                	callback(response);
+                                },5000);
+		 	}
+
+		 	function callback(response){
+                                params = response;
+                                console.log(request);
+                                if(request == 0){
+                                        request = 180;
+                                	console.log("limit window");
+                                }
+                                request -= 1;
+                                $.ajax({
+                                	data:  params,
+                                	url:   '/getTweets',
+                                	type:  'get',
+                                	success: delay
+                        	});
+		 	}
+                        
+		 	window.addEventListener('load',init,false);
+		</script>
+	</head>
+	<body>
+		<h1>Hola mundo</h1>
+	</body>
+</html>

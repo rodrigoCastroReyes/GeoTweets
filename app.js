@@ -27,13 +27,13 @@ function doSearch(params){
 	var request = new Promise(
 		function (resolve,reject){
 			var url = formUrl(params);	
-			console.log(url);
 			oauth.get(url,
 				access_token,
 				access_token_secret,function(error,data,res){
 					if(error){
 						reject(error)
 					}
+					console.log(url)
 					resolve(data,res);
 				});
 		});
@@ -41,9 +41,9 @@ function doSearch(params){
 }
 
 function formUrl(params){
-	var urlBase =  'https://api.twitter.com/1.1/search/tweets.json?q=&geocode=-23.575846,-46.628986,50km'
+	var urlBase =  'https://api.twitter.com/1.1/search/tweets.json?q=&geocode=7.149330,-65.699332,850km&until=2015-11-30';
 	for(var i in params){
-		var field = i;
+		var field = i; 
 		var value = params[i];
 		urlBase = urlBase + '&' + field + "=" + value;
 	}
@@ -73,26 +73,23 @@ function getTweets(params){
 }
 
 function writeTweets(response){
-	//console.log(response.tweets.length); //number of new tweets
-	var file = './dataset/data.json';
+	var file = './dataset/venezuela.json';
 	try{
 		var content = jsonfile.readFileSync(file);//old tweets in data.json
 		var newTweets = [];
-		newTweets = newTweets.concat(content.tweets).concat(response.tweets);	
-		jsonfile.writeFileSync(file,{ tweets : newTweets });
-		console.log("nuevo tamaño");
+		newTweets = newTweets.concat(content.tweets).concat(response.tweets);
+		console.log(newTweets[newTweets.length-1].created_at);
 		console.log(newTweets.length);
+		jsonfile.writeFileSync(file,{ tweets : newTweets });
 	}catch(error){
 		jsonfile.writeFileSync(file,{ tweets : response.tweets });
 	}
-	
-	return getTweets(response.params);//get more tweets
+	//return getTweets(response.params);//get more tweets
 }
 
-
 function compareStrings(tweetA,tweetB){
-	var a = tweetA.id;
-	var b = tweetB.id;
+	var a = tweetA.id_str;
+	var b = tweetB.id_str;
 	a = a.toLowerCase();
     b = b.toLowerCase();
     if (a < b) return 1;
@@ -108,85 +105,39 @@ function processData(data){
 		var tweet = {};
 		var geoData = array[i].geo;
 		if(geoData && geoData.coordinates){
-
-			tweet.lng = geoData.coordinates[0];
-			tweet.lat = geoData.coordinates[1];
-			tweet.id = array[i].id_str;
-			tweet.date = array[i].created_at;
-			tweet.text = array[i].text;
-
-			var user = {};
-			user.id = array[i].user.id_str;
-			user.followers_count = array[i].user.followers_count;
-			user.friends_count = array[i].user.friends_count
-			tweet.user = user;
-
-			if(array[i].retweet_count>0){
-				tweet.retweet_count = array[i].retweet_count;	
-			}else{
-				tweet.retweet_count = 0;
-			}
-			
-			if(array[i].favorite_count>0){
-				tweet.favorite_count = array[i].favorite_count;
-			}else{
-				tweet.favorite_count = 0;
-			}
-
-			if(array[i].entities.hashtags){
-				tweet.tags = array[i].entities.hashtags.text;
-			}else{
-				tweet.tags = ""
-			}
-
+			tweet = array[i];
 			tweets.push(tweet);
 		}
 	}
 	return tweets;
 }
 
-function downloadData(){
-	var params = {
-		'count' : 100
-	}// parameters to url
-	getTweets(params)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(writeTweets)
-	.then(function(response){
+function downloadData(params,req,res){
+	/*var params = {'count' : 100}*/// parameters to url
+	getTweets(params).then(function(response){
+		console.log("done");
 		writeTweets(response);
-		console.log("Data set ready");
-		return;
-	},
-	function(error){
+		params = response.params;
+		res.json(params);
+	}, function(error){
 		console.log(error);
 	});
 }
 
-	downloadData();
+app.use(express.static('./public'));
+
+app.get('/', function (req, res) {
+	res.sendfile('index.html');
+});
+
+app.get('/getTweets', function (req, res) {
+	var params = req.query;
+	downloadData(params,req,res);
+});
+
+var server = app.listen(4000, function () {
+  var host = server.address().address;
+  var port = server.address().port;
+  console.log('Example app listening at http://%s:%s', host, port);
+});
+
